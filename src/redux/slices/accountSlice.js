@@ -6,8 +6,6 @@ const initialState = {
   email: "",
   firstName: "",
   lastName: "",
-  groups: [],
-  invites: [],
 };
 
 const accountSlice = createSlice({
@@ -15,14 +13,7 @@ const accountSlice = createSlice({
   initialState,
   reducers: {
     setUser(state, action) {
-      const {
-        uid,
-        email,
-        firstName,
-        lastName,
-        groups,
-        invites,
-      } = action.payload;
+      const { uid, email, firstName, lastName } = action.payload;
       state.signedIn = true;
       state.uid = uid ? uid : state.uid;
       state.email = email ? email : state.email;

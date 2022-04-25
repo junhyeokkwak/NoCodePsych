@@ -8,30 +8,39 @@ import { wrapper } from "@/redux/store";
 import { DefaultSeo, NextSeo } from "next-seo";
 
 function MyApp({ Component, pageProps }) {
+  const store = useStore((state) => state);
+
   return (
     <>
       {" "}
-      <DefaultSeo
-        titleTemplate=" %s | NoCodePsych"
-        defaultTitle="NoCodePsych"
-        description="No-code solution for web-baesd experiments"
-        openGraph={{
-          url: "https://nocodepsych.junkwak.com",
-          title: "NoCodePsych",
-          description: "No-code solution for web-baesd experiments",
-          images: [
-            // {
-            //   url: "/mintandwear.png",
-            //   width: 1512,
-            //   height: 950,
-            //   alt: "Mint & Wear",
-            // },
-          ],
-        }}
-      />
-      <Component {...pageProps} />
+      <ThemeProvider theme={theme}>
+        <PersistGate
+          persistor={store._persistor}
+          loading={<div>loading...</div>}
+        >
+          <DefaultSeo
+            titleTemplate=" %s | NoCodePsych"
+            defaultTitle="NoCodePsych"
+            description="No-code solution for web-baesd experiments"
+            openGraph={{
+              url: "https://nocodepsych.junkwak.com",
+              title: "NoCodePsych",
+              description: "No-code solution for web-baesd experiments",
+              images: [
+                // {
+                //   url: "/mintandwear.png",
+                //   width: 1512,
+                //   height: 950,
+                //   alt: "Mint & Wear",
+                // },
+              ],
+            }}
+          />
+          <Component {...pageProps} />
+        </PersistGate>
+      </ThemeProvider>
     </>
   );
 }
 
-export default MyApp;
+export default wrapper.withRedux(MyApp);

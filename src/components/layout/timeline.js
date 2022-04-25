@@ -28,6 +28,7 @@ const newSectionDict = {
             value: "Type instruction here...",
           },
         ],
+        responseOptions: [],
       },
     ],
   },
@@ -49,6 +50,7 @@ const newSectionDict = {
             value: "https://picsum.photos/200/300",
           },
         ],
+        responseOptions: [],
       },
     ],
   },
@@ -58,6 +60,7 @@ export default function BasicTimeline({
   timelineData,
   addSection,
   handleSectionEdit,
+  handleSectionDelete,
 }) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const handleClose = () => {
@@ -112,12 +115,24 @@ export default function BasicTimeline({
                     </Grid>
                     <Grid item>
                       <Button variant="outlined" size="small">
-                        Move up
+                        Up
                       </Button>
                     </Grid>
                     <Grid item>
                       <Button variant="outlined" size="small">
-                        Move down
+                        Down
+                      </Button>
+                    </Grid>
+                    <Grid item>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          handleSectionDelete(index);
+                        }}
+                      >
+                        Delete
                       </Button>
                     </Grid>
                     {/* <Grid item>

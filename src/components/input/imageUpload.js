@@ -17,12 +17,7 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 });
 
 const ImageUpload = (props) => {
-  const {
-    uid,
-    handleURLChange = null,
-    directory = "",
-    wrappedId,
-  } = { ...props };
+  const { uid, directory = "", handleImageUrl } = { ...props };
   const [blob, setBlob] = useState(null);
   const [inputImages, setInputImages] = useState([]);
   const [submitButtonActive, setSubmitButtonActive] = useState(false);
@@ -66,11 +61,11 @@ const ImageUpload = (props) => {
     });
   };
 
-  const onInputChange = (e) => {
+  const onInputChange = async (e) => {
     const tempArr = [];
     let failNum = 0;
     let successNum = 0;
-    [...e.target.files].forEach(async (file) => {
+    await [...e.target.files].forEach(async (file) => {
       const fileSize = file.size / 1024 / 1024; // in MiB
       if (fileSize > 4) {
         alert("file exceeds 4MB"); // !!! change to snackbar message
@@ -87,38 +82,44 @@ const ImageUpload = (props) => {
             const width = image.width;
             const timestamp = Date.now();
             // upload image to firebase storage
-            const imageRef = ref(storage, `${directory}/${fileName}`);
-            uploadBytes(imageRef, file).then((snapshot) => {
-              successNum += 1;
-              getDownloadURL(imageRef).then((url) => {
-                // update firestore
-                updateDoc(doc(db, "wrapped", wrappedId), {
-                  images: arrayUnion({
-                    fileName,
-                    height,
-                    width,
-                    url,
-                    timestamp,
-                    uid,
-                  }),
+            const imageRef = ref(storage, `/${uid}/${directory}/${fileName}`);
+            uploadBytes(imageRef, file)
+              .then((snapshot) => {
+                successNum += 1;
+                getDownloadURL(imageRef).then((url) => {
+                  // update firestore
+                  tempArr.push(url);
+                  // updateDoc(doc(db, "users", uid), {
+                  //   images: arrayUnion({
+                  //     fileName,
+                  //     height,
+                  //     width,
+                  //     url,
+                  //     timestamp,
+                  //     uid,
+                  //   }),
+                  // });
                 });
+              })
+              .catch((error) => {
+                console.log("error occurred");
+                console.error(error.message);
               });
-            });
-            tempArr.push({
-              data: file,
-              url: URL.createObjectURL(file),
-              width: image.width,
-              height: image.height,
-              fileName: file.name,
-            });
           };
         };
       }
     });
+
     setInputImages(tempArr);
     setSnackbarOpen(true);
     // uploadImages(tempArr); // !!! TODO
   };
+
+  React.useEffect(() => {
+    if (inputImages && inputImages.length > 0) {
+      handleImageUrl(inputImages);
+    }
+  }, [inputImages]);
 
   const handleSubmitImage = (e) => {
     // upload blob to firebase 'profilePics' folder with filename 'uid'
@@ -161,9 +162,14 @@ const ImageUpload = (props) => {
               multiple
               onChange={onInputChange}
             />
-            <DefaultButton component="span" fullWidth type="lightBlue">
-              Upload new images
-            </DefaultButton>
+            <Button
+              component="span"
+              fullWidth
+              variant="outlined"
+              color="secondary"
+            >
+              Upload image
+            </Button>
           </label>
         </Grid>
       </Grid>

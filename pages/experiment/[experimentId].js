@@ -34,80 +34,7 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import * as _ from "lodash";
-
-const dummyPageArray = [
-  {
-    displayTime: 5000,
-    responseType: "none",
-    storeResponse: false,
-    contents: [
-      {
-        type: "text",
-        value: "Welcome to the experiment.",
-      },
-      {
-        type: "image",
-        value: "https://picsum.photos/200/300",
-      },
-    ],
-    responseOptions: [
-      {
-        label: "Continue",
-        key: "space",
-      },
-    ],
-  },
-  {
-    displayTime: "",
-    responseType: "keyboard",
-    storeResponse: true,
-    contents: [
-      {
-        type: "text",
-        value: "Would you like to proceed? Press space to continue.",
-      },
-    ],
-    responseOptions: [
-      {
-        label: "Continue",
-        key: "space",
-      },
-    ],
-  },
-  {
-    displayTime: "",
-    responseType: "mouse",
-    storeResponse: true,
-    contents: [
-      {
-        type: "text",
-        value: "Would you like to proceed? Click the button to continue.",
-      },
-    ],
-    responseOptions: [
-      {
-        label: "Continue",
-        key: "",
-      },
-    ],
-  },
-  {
-    displayTime: "",
-    responseType: "none",
-    storeResponse: false,
-    contents: [
-      {
-        type: "text",
-        value: "In this experiment, you will see an image like this.",
-      },
-      {
-        type: "image",
-        value: "https://picsum.photos/200/300",
-      },
-    ],
-    responseOptions: [],
-  },
-];
+import { parse, Parser } from "json2csv";
 
 function getDirectoryImagesByName(directories, name) {
   console.log(directories);
@@ -157,16 +84,16 @@ function timelineToPageArray(timeline, directories) {
       for (const i = 0; i < section.trialNum; i++) {
         section.pages.forEach((pageObj) => {
           const thisPage = _.cloneDeep(pageObj); // !! important! otherwise, original page object gets modified
+          thisPage.storeResponse = true;
           pageObj.contents.forEach((content, contentIndex) => {
             if (content.type === "image") {
               const thisDir = content.value;
-              console.log("loop index: ", i);
-              console.log("index: ", contentIndex);
-              console.log(Object.keys(imageDict)[0] === thisDir);
-              console.log(thisDir);
               thisPage.contents[contentIndex] = {
                 ...thisPage.contents[contentIndex],
-                value: imageDict[thisDir].images[imageDict[thisDir].index],
+                value:
+                  imageDict[thisDir].images[
+                    imageDict[thisDir].index % imageDict[thisDir].images.length
+                  ],
               };
               imageDict[thisDir].index += 1;
             }
@@ -190,6 +117,8 @@ export default function Preview() {
   const [dataLoaded, setDataLoaded] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [name, setName] = React.useState("");
+  const [isComplete, setIsComplete] = React.useState(false);
+  const [dataStored, setDataStored] = React.useState(false);
 
   React.useEffect(() => {
     if (pageArray.length === 0) return;
@@ -200,12 +129,19 @@ export default function Preview() {
       const toStore = { ...previousPage };
       if (previousPage.storeResponse) {
         toStore["response"] = lastResponse;
+      } else {
+        toStore["response"] = "";
       }
       console.log(toStore);
       const newResponseData = [...responseData, toStore];
       setResponseData(newResponseData);
       setLastResponse(null);
+      if (pageArray.length <= index) {
+        setIsComplete(true);
+        return;
+      }
     }
+
     const currentPage = pageArray[index];
     // set display time
     if (currentPage.displayTime) {
@@ -222,9 +158,7 @@ export default function Preview() {
         const pressableKeys = currentPage.responseOptions.map(
           (optionObj) => optionObj.key
         );
-        window.addEventListener("keypress", (e) => {
-          console.log(e.key);
-          console.log(Boolean(e.key === " "));
+        function eventListener(e) {
           const pressedKey = e.key === " " ? "space" : e.key.toLowerCase();
           if (pressableKeys.includes(pressedKey)) {
             const responseLabel = currentPage.responseOptions.filter(
@@ -233,10 +167,11 @@ export default function Preview() {
             setLastResponse(responseLabel);
             setIndex(index + 1);
           }
-        });
+          window.removeEventListener("keypress", eventListener);
+        }
+        window.addEventListener("keypress", eventListener);
       }
       // if (currentPage.responseType === "mouse" || currentPage.responseType === "both") {
-
       // }
     }
   }, [dataLoaded, index]);
@@ -264,6 +199,31 @@ export default function Preview() {
     if (experimentId && !dataLoaded) fetchData();
   }, [dataLoaded, experimentId]);
 
+  React.useEffect(() => {
+    // store the data as csv
+    async function storeData() {
+      // const fields = ["label", "type", "contents", "response"];
+      // const opts = { fields };
+      // const csv = parse(responseData, opts);
+      // console.log(csv);
+      // const fileName = `data-${Date.now()}.csv`;
+
+      // ! upload as raw data, then convert to csv when download
+      await setDoc(
+        doc(db, "data", experimentId),
+        {
+          responses: arrayUnion({
+            timeCompleted: Date.now(),
+            data: JSON.stringify([...responseData]),
+          }),
+        },
+        { merge: true }
+      );
+      setDataStored(true);
+    }
+    if (isComplete && !dataStored) storeData();
+  }, [isComplete]);
+
   return (
     <div
       style={{
@@ -287,34 +247,35 @@ export default function Preview() {
           // direction="column"
         >
           <Grid container item xs={12} justifyContent="center">
-            {pageArray[index].contents.map((content, i) => (
-              <Grid
-                container
-                item
-                xs={12}
-                justifyContent="center"
-                style={i !== 0 ? { paddingTop: 20 } : {}}
-              >
-                {content.type === "text" && (
-                  <Grid item>
-                    <Typography>{content.value}</Typography>
-                  </Grid>
-                )}
-                {content.type === "image" && (
-                  <Grid item>
-                    <Avatar
-                      alt="Remy Sharp"
-                      src={content.value}
-                      sx={{ width: 300, height: 200 }}
-                      variant="square"
-                    />
-                  </Grid>
-                )}
-              </Grid>
-            ))}
+            {index < pageArray.length &&
+              pageArray[index].contents.map((content, i) => (
+                <Grid
+                  container
+                  item
+                  xs={12}
+                  justifyContent="center"
+                  style={i !== 0 ? { paddingTop: 20 } : {}}
+                >
+                  {content.type === "text" && (
+                    <Grid item>
+                      <Typography>{content.value}</Typography>
+                    </Grid>
+                  )}
+                  {content.type === "image" && (
+                    <Grid item>
+                      <Avatar
+                        src={content.value}
+                        sx={{ width: 300, height: 200 }}
+                        variant="square"
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              ))}
           </Grid>
           <Grid container item xs={12} justifyContent="center">
-            {["mouse", "both"].includes(pageArray[index].responseType) &&
+            {index < pageArray.length &&
+              ["mouse", "both"].includes(pageArray[index].responseType) &&
               pageArray[index].responseOptions.map((obj) => (
                 <Grid item>
                   <Button
@@ -328,6 +289,15 @@ export default function Preview() {
                   </Button>
                 </Grid>
               ))}
+          </Grid>
+          <Grid container item xs={12} justifyContent="center">
+            {isComplete && (
+              <Grid item>
+                <Typography>
+                  Experiment has ended. You may close the window.
+                </Typography>
+              </Grid>
+            )}
           </Grid>
         </Grid>
       )}

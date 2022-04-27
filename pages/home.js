@@ -175,13 +175,14 @@ export default function Index() {
                 alignItems="center"
                 spacing={2}
               >
-                <Grid item xs={6}>
+                <Grid item xs={6} md={4}>
                   <Typography variant="h6">{dataObj.name}</Typography>
                 </Grid>
                 <Grid
                   container
                   item
                   xs={6}
+                  md={8}
                   spacing={2}
                   justifyContent="flex-end"
                   alignItems="center"
@@ -203,6 +204,17 @@ export default function Index() {
                       size="small"
                     >
                       Edit
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        router.push(`/manage/${dataObj.experimentId}`);
+                      }}
+                      size="small"
+                    >
+                      Manage
                     </Button>
                   </Grid>
                   <Grid item>

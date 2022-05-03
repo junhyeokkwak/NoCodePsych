@@ -11,19 +11,21 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { db } from "@/config/firebase";
+import { Loading } from "../surface/loading";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
 const ImageUpload = (props) => {
-  const { uid, directory = "", handleImageUrl } = { ...props };
+  const { uid, directory = "", onImageUploadComplete } = { ...props };
   const [blob, setBlob] = useState(null);
   const [inputImages, setInputImages] = useState([]);
   const [submitButtonActive, setSubmitButtonActive] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
   const [snackbarSeverity, setSnackbarSeverity] = React.useState("success");
+  const [loading, setLoading] = React.useState(false);
   const storage = getStorage();
 
   const handleSnackbarClose = (event, reason) => {
@@ -61,16 +63,13 @@ const ImageUpload = (props) => {
     });
   };
 
-  const onInputChange = async (e) => {
-    const tempArr = [];
-    let failNum = 0;
-    let successNum = 0;
-    await [...e.target.files].forEach(async (file) => {
-      const fileSize = file.size / 1024 / 1024; // in MiB
-      if (fileSize > 4) {
-        alert("file exceeds 4MB"); // !!! change to snackbar message
-      } else {
-        const reader = new FileReader();
+  const handleImageUpload = async (file) => {
+    const fileSize = file.size / 1024 / 1024;
+    if (fileSize > 4) {
+      alert("file exceeds 4MB"); // !!! change to snackbar message
+    } else {
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
         reader.readAsDataURL(file);
         reader.onload = () => {
           const image = new Image();
@@ -84,21 +83,12 @@ const ImageUpload = (props) => {
             // upload image to firebase storage
             const imageRef = ref(storage, `/${uid}/${directory}/${fileName}`);
             uploadBytes(imageRef, file)
-              .then((snapshot) => {
-                successNum += 1;
+              .then(async (snapshot) => {
                 getDownloadURL(imageRef).then((url) => {
                   // update firestore
-                  tempArr.push(url);
-                  // updateDoc(doc(db, "users", uid), {
-                  //   images: arrayUnion({
-                  //     fileName,
-                  //     height,
-                  //     width,
-                  //     url,
-                  //     timestamp,
-                  //     uid,
-                  //   }),
-                  // });
+                  const imageObject = { url, fileName, height, width };
+                  resolve(imageObject);
+                  // setTempArr([...tempArr, imageObject]);
                 });
               })
               .catch((error) => {
@@ -107,49 +97,34 @@ const ImageUpload = (props) => {
               });
           };
         };
-      }
-    });
+      });
+    }
+  };
 
+  const onInputChange = async (e) => {
+    setLoading(true);
+    const tempArr = [];
+    for (const file of [...e.target.files]) {
+      const imageObject = await handleImageUpload(file);
+      console.log(imageObject);
+      tempArr.push(imageObject);
+      console.log(tempArr);
+    }
     setInputImages(tempArr);
     setSnackbarOpen(true);
+    setLoading(false);
     // uploadImages(tempArr); // !!! TODO
   };
 
   React.useEffect(() => {
     if (inputImages && inputImages.length > 0) {
-      handleImageUrl(inputImages);
+      onImageUploadComplete(inputImages);
     }
   }, [inputImages]);
 
-  const handleSubmitImage = (e) => {
-    // upload blob to firebase 'profilePics' folder with filename 'uid'
-    e.preventDefault();
-    // fire
-    //   .storage()
-    //   .ref("profilePics")
-    //   .child(uid)
-    //   .put(blob, { contentType: blob.type })
-    //   .then(async (snapshot) => {
-    //     await snapshot.ref.getDownloadURL().then((downloadURL) => {
-    //       db.collection("users").doc(uid).update({
-    //         profilePicURL: downloadURL,
-    //       });
-    //       if (handleURLChange) handleURLChange(downloadURL); // function that sends the URL up to the parent component
-    //     });
-    //     setSnackbarSeverity("success");
-    //     setSnackbarMessage("Profile picture successfully updated!");
-    //     setSnackbarOpen(true);
-    //     setSubmitButtonActive(false);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     setSnackbarSeverity("error");
-    //     setSnackbarMessage(error.message);
-    //   });
-  };
-
   return (
     <Grid item xs={12}>
+      <Loading loading={loading} />
       <Grid container justify="flex-start" spacing={1}>
         <Grid item xs={12}>
           <label htmlFor="upload-photo">

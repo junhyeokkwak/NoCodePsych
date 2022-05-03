@@ -175,26 +175,26 @@ export default function Index() {
                 alignItems="center"
                 spacing={2}
               >
-                <Grid item xs={6} md={4}>
+                <Grid item xs={6} md={5}>
                   <Typography variant="h6">{dataObj.name}</Typography>
                 </Grid>
                 <Grid
                   container
                   item
                   xs={6}
-                  md={8}
+                  md={7}
                   spacing={2}
                   justifyContent="flex-end"
                   alignItems="center"
                 >
-                  <Grid item>
+                  {/* <Grid item>
                     <Chip
                       label={titleCase(dataObj.status)}
                       variant="filled"
                       fullWidth
                       sx={{ fontWeight: 800 }}
                     />
-                  </Grid>
+                  </Grid> */}
                   <Grid item>
                     <Button
                       variant="outlined"
@@ -213,6 +213,7 @@ export default function Index() {
                         router.push(`/manage/${dataObj.experimentId}`);
                       }}
                       size="small"
+                      color="secondary"
                     >
                       Manage
                     </Button>
@@ -233,7 +234,7 @@ export default function Index() {
               </Grid>
             ))}
           </Grid>
-          <Grid item xs={12} md={8} lg={7} style={{ paddingTop: 15 }}>
+          <Grid item xs={12} sm={10} md={8} style={{ paddingTop: 15 }}>
             <Button
               fullWidth
               variant="contained"
@@ -244,7 +245,7 @@ export default function Index() {
               Create New Experiment
             </Button>
           </Grid>
-          <Grid item xs={12} md={8} lg={7} style={{ paddingTop: 15 }}>
+          <Grid item xs={12} sm={10} md={8} style={{ paddingTop: 15 }}>
             <Button
               fullWidth
               variant="contained"

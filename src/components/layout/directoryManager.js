@@ -71,11 +71,13 @@ export const DirectoryManager = ({
     });
   }, [currentDirectory]);
 
-  const handleImageUrl = async (urlArray) => {
+  const onImageUploadComplete = async (newImgData) => {
+    console.log(newImgData);
     const newDirectories = [...directoryData];
+    setCurrentDirectoryImages([...currentDirectoryImages, ...newImgData]);
     newDirectories.forEach((dirObj, i) => {
       if (dirObj.directoryName === currentDirectory) {
-        dirObj.images = [...dirObj.images, ...urlArray];
+        dirObj.images = [...dirObj.images, ...newImgData];
       }
     });
     console.log(newDirectories);
@@ -125,7 +127,7 @@ export const DirectoryManager = ({
         <ImageUpload
           uid={uid}
           directory={currentDirectory}
-          handleImageUrl={handleImageUrl}
+          onImageUploadComplete={onImageUploadComplete}
         />
         {/* <Button
           variant="outlined"
@@ -137,10 +139,10 @@ export const DirectoryManager = ({
         </Button> */}
       </Grid>
       <Grid container item xs={12} spacing={1}>
-        {currentDirectoryImages.map((imageUrl, i) => (
+        {currentDirectoryImages.map((imageObj, i) => (
           <Grid item xs={4} key={i}>
             <img
-              src={imageUrl}
+              src={imageObj?.url}
               style={{ width: "100%", aspectRatio: "1200 / 900" }}
             />
             {/* <Typography>{imageUrl}</Typography> */}

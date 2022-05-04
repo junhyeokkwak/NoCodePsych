@@ -42,7 +42,8 @@ import {
 } from "firebase/firestore";
 import * as parser from "humanparser";
 import { useDispatch, useSelector } from "react-redux";
-import { db } from "@/config/firebase";
+import { signOut } from "@/redux/slices/accountSlice";
+import { db, auth } from "@/config/firebase";
 import { titleCase } from "@/components/utils/string";
 
 export default function Index() {
@@ -50,6 +51,7 @@ export default function Index() {
   const [errorMessage, setErrorMessage] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const { firstName, uid } = useSelector((state) => state.account);
+  const dispatch = useDispatch();
   const [dataLoaded, setDataLoaded] = React.useState(false);
   const [experimentIds, setExperimentIds] = React.useState([]);
   const [experimentData, setExperimentData] = React.useState([]);
@@ -127,6 +129,21 @@ export default function Index() {
       })
       .catch((error) => {
         console.error(error);
+      });
+  }
+
+  async function handleSignOut() {
+    return auth
+      .signOut()
+      .then(() => {
+        return dispatch(signOut());
+      })
+      .then(() => {
+        router.push("/");
+      })
+      .catch((error) => {
+        console.log(error);
+        return { error };
       });
   }
 
@@ -250,7 +267,9 @@ export default function Index() {
               fullWidth
               variant="contained"
               color="secondary"
-              onClick={() => {}}
+              onClick={() => {
+                handleSignOut();
+              }}
             >
               Sign out
             </Button>

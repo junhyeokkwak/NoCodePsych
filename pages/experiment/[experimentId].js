@@ -122,11 +122,24 @@ export default function Preview() {
 
   React.useEffect(() => {
     if (pageArray.length === 0) return;
-    console.log(index);
+    console.log(`index ${index} of ${pageArray.length}`);
     if (index > 0) {
       // store data for previous index
       const previousPage = pageArray[index - 1];
       const toStore = { ...previousPage };
+      const textArray = [];
+      const imageArray = [];
+      previousPage.contents.forEach((content) => {
+        if (content.type === "text") {
+          textArray.push(content.value);
+        } else {
+          imageArray.push(content.value.fileName);
+        }
+      });
+      const inputText = textArray.join(", ");
+      const inputImage = imageArray.join(", ");
+      toStore["inputText"] = inputText;
+      toStore["inputImage"] = inputImage;
       if (previousPage.storeResponse) {
         toStore["response"] = lastResponse;
       } else {
@@ -202,6 +215,7 @@ export default function Preview() {
   React.useEffect(() => {
     // store the data as csv
     async function storeData() {
+      console.log("storing data");
       // const fields = ["label", "type", "contents", "response"];
       // const opts = { fields };
       // const csv = parse(responseData, opts);
@@ -264,7 +278,7 @@ export default function Preview() {
                   {content.type === "image" && (
                     <Grid item>
                       <Avatar
-                        src={content.value}
+                        src={content.value.url}
                         sx={{ width: 300, height: 200 }}
                         variant="square"
                       />
@@ -273,7 +287,7 @@ export default function Preview() {
                 </Grid>
               ))}
           </Grid>
-          <Grid container item xs={12} justifyContent="center">
+          <Grid container item xs={12} justifyContent="center" spacing={1}>
             {index < pageArray.length &&
               ["mouse", "both"].includes(pageArray[index].responseType) &&
               pageArray[index].responseOptions.map((obj) => (

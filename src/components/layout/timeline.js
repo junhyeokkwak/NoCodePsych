@@ -196,19 +196,6 @@ export default function BasicTimeline({
               Trial
             </Button>
           </Grid>
-          <Grid item xs={3}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                handleAddSection("debrief");
-              }}
-              fullWidth
-              disabled
-            >
-              Debrief
-            </Button>
-          </Grid>
         </Grid>
       </StandardDialog>
     </>

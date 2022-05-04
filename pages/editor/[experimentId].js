@@ -302,7 +302,7 @@ export default function Home() {
                       router.push(`/experiment/${experimentId}`);
                     }}
                   >
-                    Preview
+                    Open experiment
                   </Button>
                 </Grid>
               </Grid>
@@ -333,7 +333,12 @@ export default function Home() {
             </Button>
           </Grid>
           <Grid item xs={4}>
-            <Button variant="contained" fullWidth onClick={handleNext}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleNext}
+              disabled={step === 3}
+            >
               {"Next >"}
             </Button>
           </Grid>

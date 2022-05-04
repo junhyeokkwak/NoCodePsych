@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import * as React from "react";
 import Button from "@mui/material/Button";
+import * as dayjs from "dayjs";
 import Colors from "@/design/colors";
 import MainBox from "@/components/layout/mainBox";
 import { useRouter } from "next/router";
@@ -54,6 +55,7 @@ export default function Home() {
   const { experimentId } = router.query;
   const [loading, setLoading] = React.useState(false);
   const [directories, setDirectories] = React.useState([]);
+  const [timeCompletedArray, setTimeCompletedArray] = React.useState([]);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -69,8 +71,10 @@ export default function Home() {
       const dataSnap = await getDoc(doc(db, "data", experimentId));
       if (dataSnap.exists()) {
         const jsonResponses = [];
+        const timeCompleted = [];
         dataSnap.data().responses.forEach((responseObj) => {
           // console.log(responseStr);
+          timeCompleted.push(responseObj.timeCompleted);
           const currentData = JSON.parse(responseObj.data);
           console.log(currentData);
           const formattedData = Object.values(currentData)
@@ -78,14 +82,14 @@ export default function Home() {
             .map((row) => ({
               displayTime: row.displayTime,
               response: row.response,
-              stimuli: row.contents
-                .filter((content) => content.value)
-                .map((content) => content.value),
+              inputImage: row.inputImage,
+              inputText: row.inputText,
             }));
           console.log(formattedData);
           jsonResponses.push(formattedData);
         });
         setResponses(jsonResponses);
+        setTimeCompletedArray(timeCompleted);
       }
       setDataLoaded(true);
       setLoading(false);
@@ -132,13 +136,21 @@ export default function Home() {
                   alignItems="center"
                 >
                   <Grid item>
-                    <Typography>Response #{index + 1}</Typography>
+                    <Typography style={{ fontWeight: "bold" }}>
+                      Response #{index + 1}
+                    </Typography>
+                    <Typography style={{ fontSize: 13 }}>
+                      Completed:{" "}
+                      {dayjs(timeCompletedArray[index]).format(
+                        "YYYY-MM-DD HH:mm"
+                      )}
+                    </Typography>
                   </Grid>
                   <Grid item>
                     {/* <Button>Download CSV</Button> */}
                     <CsvDownload
                       data={data}
-                      filename="good_data.csv"
+                      filename={`experiment-${experimentId}-response-${index}.csv`}
                       style={{
                         //pass other props, like styles
                         boxShadow: "inset 0px 1px 0px 0px #e184f3",

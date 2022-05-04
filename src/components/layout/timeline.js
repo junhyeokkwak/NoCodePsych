@@ -75,7 +75,7 @@ export default function BasicTimeline({
       <Timeline>
         {timelineData &&
           timelineData.map((node, index) => (
-            <TimelineItem>
+            <TimelineItem key={index}>
               <TimelineOppositeContent>
                 <Typography variant="h6" component="span">
                   {node.label}

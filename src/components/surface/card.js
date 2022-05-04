@@ -136,7 +136,7 @@ export const FullInfoCard = ({
               justifyContent="center"
               style={{ paddingTop: 20 }}
             >
-              {stats.map((statObj) => (
+              {stats.map((statObj, index) => (
                 <Grid
                   container
                   item
@@ -145,6 +145,7 @@ export const FullInfoCard = ({
                   xl={7}
                   justifyContent="space-between"
                   style={{ margin: 3 }}
+                  key={index}
                 >
                   <Grid item>
                     <Typography color={Colors.gray}>{statObj.label}</Typography>

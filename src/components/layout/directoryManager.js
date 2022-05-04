@@ -105,8 +105,8 @@ export const DirectoryManager = ({
           }}
           size="small"
         >
-          {directoryData.map((dataObj) => (
-            <MenuItem value={dataObj.directoryName}>
+          {directoryData.map((dataObj, i) => (
+            <MenuItem value={dataObj.directoryName} key={i}>
               {dataObj.directoryName}
             </MenuItem>
           ))}

@@ -269,6 +269,7 @@ export default function Preview() {
                   xs={12}
                   justifyContent="center"
                   style={i !== 0 ? { paddingTop: 20 } : {}}
+                  key={i}
                 >
                   {content.type === "text" && (
                     <Grid item>
@@ -290,8 +291,8 @@ export default function Preview() {
           <Grid container item xs={12} justifyContent="center" spacing={1}>
             {index < pageArray.length &&
               ["mouse", "both"].includes(pageArray[index].responseType) &&
-              pageArray[index].responseOptions.map((obj) => (
-                <Grid item>
+              pageArray[index].responseOptions.map((obj, optionIndex) => (
+                <Grid item key={optionIndex}>
                   <Button
                     variant="contained"
                     onClick={() => {

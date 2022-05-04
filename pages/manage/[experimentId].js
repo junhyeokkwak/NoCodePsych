@@ -134,6 +134,7 @@ export default function Home() {
                   xs={12}
                   justifyContent="space-between"
                   alignItems="center"
+                  key={index}
                 >
                   <Grid item>
                     <Typography style={{ fontWeight: "bold" }}>

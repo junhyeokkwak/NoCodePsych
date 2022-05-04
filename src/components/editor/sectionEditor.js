@@ -371,8 +371,8 @@ export const SectionEditor = ({
                           );
                         }}
                       >
-                        {directories.map((dirObj) => (
-                          <MenuItem value={dirObj.directoryName}>
+                        {directories.map((dirObj, i) => (
+                          <MenuItem value={dirObj.directoryName} key={i}>
                             {dirObj.directoryName}
                           </MenuItem>
                         ))}
